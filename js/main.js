@@ -17,6 +17,7 @@ var BUTTON_OFFSET_Y = SCREEN_HEIGHT - ( BOARD_PADDING * 2 + BUTTON_HEIGHT * 3 / 
 var CIRCLE_RADIUS   = 32;
 var COMMIT_START_X  = SCREEN_WIDTH / 2;
 var COMMIT_START_Y  = 60;
+var COMMIT_SPAN     = 90;
 
 // MainScene クラスを定義
 phina.define('MainScene', {
@@ -28,6 +29,10 @@ phina.define('MainScene', {
     });
 
     this.background = '#222';
+    
+    this.group = DisplayElement().addChildTo(this);
+    this.tree = DisplayElement().addChildTo(this);
+    this.commit = DisplayElement().addChildTo(this);
 
     this.currentIndex = "";
 
@@ -36,9 +41,6 @@ phina.define('MainScene', {
     this.commitPosX = COMMIT_START_X;
     this.commitPosY = COMMIT_START_Y;
     this.commitCount = 0;
-
-    this.group = DisplayElement().addChildTo(this);
-    this.commit = DisplayElement().addChildTo(this);
     
     var gridX = Grid(BOARD_WIDTH, 4);
     var gridY = Grid(BOARD_HEIGHT, 10);
@@ -85,8 +87,11 @@ phina.define('MainScene', {
           var x = this.commitPosX;
           var y = this.commitPosY;
           this.addCircle(x, y);
+          if (this.commitCount != 0) {
+            this.addTree(x, y);
+          }
           if (this.commitCount != 7 ){
-            this.commitPosY += 90;
+            this.commitPosY += COMMIT_SPAN;
           } else {
             this.group.children[2].fill = "hsla(0, 0%, 60%, 0.5)";
           }
@@ -105,7 +110,7 @@ phina.define('MainScene', {
         }
       } else if (button.index == "clear") {
         if (this.addStatus || this.commitCount != 0) {
-          this.clearCircle();
+          this.clearAll();
           this.addStatus = false;
           this.group.children[2].fill = "hsla(200, 80%, 60%, 1.0)";
           this.group.children[3].fill = "hsla(0, 0%, 60%, 0.5)";
@@ -119,7 +124,7 @@ phina.define('MainScene', {
 
   // コミットの追加
   addCircle: function(x, y) {
-    var color = "hsla({0}, 75%, 50%, 0.75)".format(Math.randint(0, 360));
+    var color = "hsla({0}, 60%, 50%, 1.0)".format(Math.randint(0, 360));
     var circle = Circle({
       fill: color,
       x: x,
@@ -127,10 +132,23 @@ phina.define('MainScene', {
     }).addChildTo(this.commit);
   },
 
-  // コミットの削除
-  clearCircle: function() {
+  // ツリーの追加
+  addTree: function(x, y) {
+    var color = "hsla(0, 0%, 50%, 1.0)";
+    var line = PathShape({
+      stroke: color,
+      paths: [
+        Vector2(x, y - COMMIT_SPAN),
+        Vector2(x, y)
+      ],
+    }).addChildTo(this.tree);
+  },
+
+  // 全削除
+  clearAll: function() {
     this.commit.children.clear();
-  }
+    this.tree.children.clear();
+  },
 });
 
 // ボタンのデザイン
@@ -161,7 +179,7 @@ phina.define('Circle', {
 
     this.superInit(options);
 
-    this.blendMode = 'lighter';
+    //this.blendMode = 'lighter';
   },
 });
 
