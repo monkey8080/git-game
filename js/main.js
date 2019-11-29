@@ -64,7 +64,7 @@ phina.define('MainScene', {
 
     var self = this;
 
-    var buttonTexts = [ "barnch", "checkout", "add", "commit", "merge to", "merge from", "branch -D", "reset --hard" ];
+    var buttonTexts = [ "branch", "checkout", "add", "commit", "merge to", "merge from", "branch -D", "reset --hard" ];
 
     buttonTexts.each(function(index, i) {
       var xIndex = i % MAX_PER_LINE;
