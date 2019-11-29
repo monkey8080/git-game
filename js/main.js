@@ -10,8 +10,9 @@ var BUTTON_HEIGHT   = 80;
 var BOARD_PADDING   = 20;
 
 var BOARD_WIDTH     = SCREEN_WIDTH - BOARD_PADDING * 2;
+var BOARD_HEIGHT    = SCREEN_HEIGHT - BOARD_PADDING * 2;
 var BUTTON_OFFSET_X = BOARD_PADDING + BUTTON_WIDTH / 2;
-var BUTTON_OFFSET_Y = SCREEN_HEIGHT - ( BOARD_PADDING + BUTTON_HEIGHT / 2 );
+var BUTTON_OFFSET_Y = SCREEN_HEIGHT - ( BOARD_PADDING * 2 + BUTTON_HEIGHT * 3 / 2 );
 
 var CIRCLE_RADIUS   = 32;
 var COMMIT_START_X  = SCREEN_WIDTH / 2;
@@ -59,7 +60,7 @@ phina.define('MainScene', {
     this.group = DisplayElement().addChildTo(this);
     
     var gridX = Grid(BOARD_WIDTH, 4);
-    var gridY = Grid(BOARD_WIDTH, 2);
+    var gridY = Grid(BOARD_HEIGHT, 10);
 
     var self = this;
 
@@ -71,7 +72,7 @@ phina.define('MainScene', {
       var p = Text(index).addChildTo(self.group);
 
       p.x = gridX.span(xIndex) + BUTTON_OFFSET_X;
-      p.y = gridY.span(yIndex)+150;
+      p.y = gridY.span(yIndex) + BUTTON_OFFSET_Y;
 
       p.onpointstart = function() {
         self.check(this);
@@ -94,7 +95,7 @@ phina.define('MainScene', {
   check: function(button) {
       button.alpha = 0.5;
       this.currentIndex = button.index;
-      if (button.index == "Commit") {
+      if (button.index == "commit") {
         var x = this.commitPosX;
         var y = this.commitPosY;
         this.addCircle(x, y);
