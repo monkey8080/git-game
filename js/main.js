@@ -66,7 +66,7 @@ phina.define('MainScene', {
       };
     });
 
-    this.group.children[3].fill = "hsla(0, 0%, 60%, 0.5)";
+    this.group.children[2].fill = "hsla(200, 80%, 60%, 1.0)";
 
     this.onpointstart = function(e) {
       var p = e.pointer;
@@ -82,7 +82,6 @@ phina.define('MainScene', {
     if (button.index == "commit") {
       if (this.addStatus) {
         if (this.commitCount != 8) {
-          button.alpha = 0.5;
           var x = this.commitPosX;
           var y = this.commitPosY;
           this.addCircle(x, y);
@@ -102,15 +101,18 @@ phina.define('MainScene', {
           button.alpha = 0.5;
           this.addStatus = true;
           this.group.children[3].fill = "hsla(200, 80%, 60%, 1.0)";
+          this.group.children[7].fill = "hsla(200, 80%, 60%, 1.0)";
         }
       } else if (button.index == "clear") {
-        button.alpha = 0.5;
-        this.clearCircle();
-        this.addStatus = false;
-        this.group.children[2].fill = "hsla(200, 80%, 60%, 1.0)";
-        this.group.children[3].fill = "hsla(0, 0%, 60%, 0.5)";
-        this.commitPosY = COMMIT_START_Y;
-        this.commitCount = 0;
+        if (this.addStatus || this.commitCount != 0) {
+          this.clearCircle();
+          this.addStatus = false;
+          this.group.children[2].fill = "hsla(200, 80%, 60%, 1.0)";
+          this.group.children[3].fill = "hsla(0, 0%, 60%, 0.5)";
+          this.group.children[7].fill = "hsla(0, 0%, 60%, 0.5)";
+          this.commitPosY = COMMIT_START_Y;
+          this.commitCount = 0;
+        }
       }
     }
   },
@@ -140,7 +142,7 @@ phina.define('Text', {
       height: BUTTON_HEIGHT,
       text: index+'',
       fontSize: 20,
-      fill: "hsla(200, 80%, 60%, 1.0)",
+      fill: "hsla(0, 0%, 60%, 0.5)",
     });
 
     this.index = index;
