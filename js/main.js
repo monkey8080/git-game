@@ -18,28 +18,6 @@ var CIRCLE_RADIUS   = 32;
 var COMMIT_START_X  = SCREEN_WIDTH / 2;
 var COMMIT_START_Y  = 60;
 
-// コミットの制御
-phina.define('Circle', {
-  superClass: 'CircleShape',
-
-  init: function(options) {
-    options = (options || {}).$safe({
-      fill: 'red',
-      stroke: null,
-      radius: CIRCLE_RADIUS,
-    });
-    this.superInit(options);
-
-    this.blendMode = 'lighter';
-  },
-
-  // コミットの挙動
-  update: function(app) {
-    //this.x = 100;
-    //this.y = 100;
-  }
-})
-
 // MainScene クラスを定義
 phina.define('MainScene', {
   superClass: 'DisplayScene',
@@ -49,23 +27,27 @@ phina.define('MainScene', {
       height: SCREEN_HEIGHT,
     });
 
-    // 背景色
     this.background = '#222';
 
     this.currentIndex = "";
 
+    this.addStatus = false;
+    
     this.commitPosX = COMMIT_START_X;
     this.commitPosY = COMMIT_START_Y;
+    this.commitCount = 0;
 
     this.group = DisplayElement().addChildTo(this);
+    this.commit = DisplayElement().addChildTo(this);
     
     var gridX = Grid(BOARD_WIDTH, 4);
     var gridY = Grid(BOARD_HEIGHT, 10);
 
     var self = this;
 
-    var buttonTexts = [ "branch", "checkout", "add", "commit", "merge to", "merge from", "branch -D", "reset --hard" ];
+    var buttonTexts = [ "branch", "checkout", "add", "commit", "merge to", "merge from", "branch -D", "clear" ];
 
+    // ボタンの設置
     buttonTexts.each(function(index, i) {
       var xIndex = i % MAX_PER_LINE;
       var yIndex = Math.floor(i / MAX_PER_LINE);
@@ -84,6 +66,8 @@ phina.define('MainScene', {
       };
     });
 
+    this.group.children[3].fill = "hsla(0, 0%, 60%, 0.5)";
+
     this.onpointstart = function(e) {
       var p = e.pointer;
       var wave = Wave().addChildTo(this);
@@ -92,53 +76,102 @@ phina.define('MainScene', {
     };
   },
 
+  // ボタンが押された時の処理
   check: function(button) {
-      button.alpha = 0.5;
-      this.currentIndex = button.index;
-      if (button.index == "commit") {
-        var x = this.commitPosX;
-        var y = this.commitPosY;
-        this.addCircle(x, y);
-        this.commitPosY += 90;
+    this.currentIndex = button.index;
+    if (button.index == "commit") {
+      if (this.addStatus) {
+        if (this.commitCount != 8) {
+          button.alpha = 0.5;
+          var x = this.commitPosX;
+          var y = this.commitPosY;
+          this.addCircle(x, y);
+          if (this.commitCount != 7 ){
+            this.commitPosY += 90;
+          } else {
+            this.group.children[2].fill = "hsla(0, 0%, 60%, 0.5)";
+          }
+          this.commitCount++;
+        }
+        this.addStatus = false;
+        button.fill = "hsla(0, 0%, 60%, 0.5)";
       }
+    } else {
+      if (button.index == "add") {
+        if (this.commitCount != 8) {
+          button.alpha = 0.5;
+          this.addStatus = true;
+          this.group.children[3].fill = "hsla(200, 80%, 60%, 1.0)";
+        }
+      } else if (button.index == "clear") {
+        button.alpha = 0.5;
+        this.clearCircle();
+        this.addStatus = false;
+        this.group.children[2].fill = "hsla(200, 80%, 60%, 1.0)";
+        this.group.children[3].fill = "hsla(0, 0%, 60%, 0.5)";
+        this.commitPosY = COMMIT_START_Y;
+        this.commitCount = 0;
+      }
+    }
   },
 
+  // コミットの追加
   addCircle: function(x, y) {
     var color = "hsla({0}, 75%, 50%, 0.75)".format(Math.randint(0, 360));
     var circle = Circle({
       fill: color,
       x: x,
       y: y,
-    }).addChildTo(this);
+    }).addChildTo(this.commit);
   },
+
+  // コミットの削除
+  clearCircle: function() {
+    this.commit.children.clear();
+  }
 });
 
+// ボタンのデザイン
 phina.define('Text', {
   superClass: 'Button',
-
   init: function(index) {
     this.superInit({
       width: BUTTON_WIDTH,
       height: BUTTON_HEIGHT,
       text: index+'',
       fontSize: 20,
+      fill: "hsla(200, 80%, 60%, 1.0)",
     });
 
     this.index = index;
-  }
+  },
+});
+
+// コミットのデザイン
+phina.define('Circle', {
+  superClass: 'CircleShape',
+  init: function(options) {
+    options = (options || {}).$safe({
+      fill: 'red',
+      stroke: null,
+      radius: CIRCLE_RADIUS,
+    });
+
+    this.superInit(options);
+
+    this.blendMode = 'lighter';
+  },
 });
 
 // メイン処理
 phina.main(function() {
-  // アプリケーション生成
   var app = GameApp({
-    startLabel: 'main', // メインシーンから開始する
+    startLabel: 'main',
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
   });
 
   app.enableStats();
   
-  // アプリケーション実行
   app.run();
 });
