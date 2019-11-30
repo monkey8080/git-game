@@ -14,7 +14,7 @@ var BOARD_HEIGHT    = SCREEN_HEIGHT - BOARD_PADDING * 2;
 var BUTTON_OFFSET_X = BOARD_PADDING + BUTTON_WIDTH / 2;
 var BUTTON_OFFSET_Y = SCREEN_HEIGHT - ( BOARD_PADDING * 2 + BUTTON_HEIGHT * 3 / 2 );
 
-var CIRCLE_RADIUS   = 32;
+var COMMIT_RADIUS   = 32;
 var COMMIT_START_X  = SCREEN_WIDTH / 2;
 var COMMIT_START_Y  = 60;
 var COMMIT_SPAN     = 90;
@@ -86,7 +86,7 @@ phina.define('MainScene', {
         if (this.commitCount != 8) {
           var x = this.commitPosX;
           var y = this.commitPosY;
-          this.addCircle(x, y);
+          this.addCommit(x, y);
           if (this.commitCount != 0) {
             this.addTree(x, y);
           }
@@ -123,9 +123,9 @@ phina.define('MainScene', {
   },
 
   // コミットの追加
-  addCircle: function(x, y) {
+  addCommit: function(x, y) {
     var color = "hsla({0}, 60%, 50%, 1.0)".format(Math.randint(0, 360));
-    var circle = Circle({
+    var commit = Commit({
       fill: color,
       x: x,
       y: y,
@@ -168,13 +168,13 @@ phina.define('Text', {
 });
 
 // コミットのデザイン
-phina.define('Circle', {
+phina.define('Commit', {
   superClass: 'CircleShape',
   init: function(options) {
     options = (options || {}).$safe({
       fill: 'red',
       stroke: null,
-      radius: CIRCLE_RADIUS,
+      radius: COMMIT_RADIUS,
     });
 
     this.superInit(options);
