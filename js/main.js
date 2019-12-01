@@ -12,18 +12,18 @@ var BOARD_PADDING   = 20;
 var BOARD_WIDTH     = SCREEN_WIDTH - BOARD_PADDING * 2;
 var BOARD_HEIGHT    = SCREEN_HEIGHT - BOARD_PADDING * 2;
 var BUTTON_OFFSET_X = BOARD_PADDING + BUTTON_WIDTH / 2;
-var BUTTON_OFFSET_Y = SCREEN_HEIGHT - ( BOARD_PADDING * 2 + BUTTON_HEIGHT * 3 / 2 );
+var BUTTON_OFFSET_Y = SCREEN_HEIGHT - ( BOARD_PADDING + BUTTON_HEIGHT * 3 / 2 );
 
 var FILE_WIDTH      = 64;
 var FILE_HEIGHT     = 32;
 var FILE_START_X    = SCREEN_WIDTH / 4;
 var FILE_START_Y    = 60;
-var FILE_SPAN       = 40;
+var FILE_SPAN       = 48;
 
 var COMMIT_RADIUS   = 32;
 var COMMIT_START_X  = SCREEN_WIDTH / 2;
 var COMMIT_START_Y  = 60;
-var COMMIT_SPAN     = 90;
+var COMMIT_SPAN     = 96;
 
 // MainScene クラスを定義
 phina.define('MainScene', {
@@ -107,12 +107,12 @@ phina.define('MainScene', {
           if (this.commitCount != 0) {
             this.addTree(x, y);
           }
-          if (this.commitCount != 7 ){
-            this.commitPosY += COMMIT_SPAN;
-          } else {
+          this.commitPosY += COMMIT_SPAN;
+          this.commitCount++;
+          this.group.children[2].fill = "hsla(200, 80%, 60%, 1.0)";
+          if (this.commitCount == 8 ){
             this.group.children[2].fill = "hsla(0, 0%, 60%, 0.5)";
           }
-          this.commitCount++;
         }
         this.addStatus = false;
         button.fill = "hsla(0, 0%, 60%, 0.5)";
@@ -120,12 +120,11 @@ phina.define('MainScene', {
     } else {
       if (button.index == "add") {
         if (this.commitCount != 8) {
+          if (this.fileCount < 15 - this.commitCount * 2) {
           button.alpha = 0.5;
           this.addStatus = true;
           this.group.children[3].fill = "hsla(200, 80%, 60%, 1.0)";
           this.group.children[7].fill = "hsla(200, 80%, 60%, 1.0)";
-          console.log(this.commitCount, this.fileCount);
-          if (this.commitCount < 5 && this.fileCount < 8 || this.commitCount >= 5 && this.fileCount < 8 - (this.commitCount % 4) * 2) {
             if (this.fileCount == 0) {
               var x = this.commitPosX;
               var y = this.commitPosY;
@@ -137,6 +136,9 @@ phina.define('MainScene', {
             this.addFile(x, y);
             this.filePosY += FILE_SPAN;
             this.fileCount++;
+            if (this.fileCount == 15 - this.commitCount * 2) {
+              this.group.children[2].fill = "hsla(0, 0%, 60%, 0.5)";
+            }
           }
         }
       } else if (button.index == "clear") {
