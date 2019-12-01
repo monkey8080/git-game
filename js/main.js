@@ -14,6 +14,12 @@ var BOARD_HEIGHT    = SCREEN_HEIGHT - BOARD_PADDING * 2;
 var BUTTON_OFFSET_X = BOARD_PADDING + BUTTON_WIDTH / 2;
 var BUTTON_OFFSET_Y = SCREEN_HEIGHT - ( BOARD_PADDING * 2 + BUTTON_HEIGHT * 3 / 2 );
 
+var FILE_WIDTH      = 64;
+var FILE_HEIGHT     = 32;
+var FILE_START_X    = SCREEN_WIDTH / 4;
+var FILE_START_Y    = 60;
+var FILE_SPAN       = 40;
+
 var COMMIT_RADIUS   = 32;
 var COMMIT_START_X  = SCREEN_WIDTH / 2;
 var COMMIT_START_Y  = 60;
@@ -31,12 +37,18 @@ phina.define('MainScene', {
     this.background = '#222';
     
     this.group = DisplayElement().addChildTo(this);
+    this.line = DisplayElement().addChildTo(this);
+    this.file = DisplayElement().addChildTo(this);
     this.tree = DisplayElement().addChildTo(this);
     this.commit = DisplayElement().addChildTo(this);
 
     this.currentIndex = "";
 
     this.addStatus = false;
+
+    this.filePosX = FILE_START_X;
+    this.filePosY = FILE_START_Y;
+    this.fileCount = 0;
     
     this.commitPosX = COMMIT_START_X;
     this.commitPosY = COMMIT_START_Y;
@@ -84,6 +96,11 @@ phina.define('MainScene', {
     if (button.index == "commit") {
       if (this.addStatus) {
         if (this.commitCount != 8) {
+          this.line.children.clear();
+          this.file.children.clear();
+          this.filePosY = FILE_START_Y + (this.commitCount + 1) * COMMIT_SPAN;
+          this.fileCount = 0;
+          this.commit.children.last.remove();
           var x = this.commitPosX;
           var y = this.commitPosY;
           this.addCommit(x, y);
@@ -107,14 +124,33 @@ phina.define('MainScene', {
           this.addStatus = true;
           this.group.children[3].fill = "hsla(200, 80%, 60%, 1.0)";
           this.group.children[7].fill = "hsla(200, 80%, 60%, 1.0)";
+          console.log(this.commitCount, this.fileCount);
+          if (this.commitCount < 5 && this.fileCount < 8 || this.commitCount >= 5 && this.fileCount < 8 - (this.commitCount % 4) * 2) {
+            if (this.fileCount == 0) {
+              var x = this.commitPosX;
+              var y = this.commitPosY;
+              this.addPreCommit(x, y);
+            }
+            var x = this.filePosX;
+            var y = this.filePosY;
+            this.addLine(x + FILE_WIDTH / 2, y, this.commitPosX - COMMIT_RADIUS, this.commitPosY);
+            this.addFile(x, y);
+            this.filePosY += FILE_SPAN;
+            this.fileCount++;
+          }
         }
       } else if (button.index == "clear") {
         if (this.addStatus || this.commitCount != 0) {
-          this.clearAll();
+          this.line.children.clear();
+          this.file.children.clear();
+          this.tree.children.clear();
+          this.commit.children.clear();
           this.addStatus = false;
           this.group.children[2].fill = "hsla(200, 80%, 60%, 1.0)";
           this.group.children[3].fill = "hsla(0, 0%, 60%, 0.5)";
           this.group.children[7].fill = "hsla(0, 0%, 60%, 0.5)";
+          this.filePosY = FILE_START_Y;
+          this.fileCount = 0;
           this.commitPosY = COMMIT_START_Y;
           this.commitCount = 0;
         }
@@ -122,11 +158,43 @@ phina.define('MainScene', {
     }
   },
 
+  // ファイルの追加
+  addFile: function(x, y) {
+    var rect = Rect({
+      fill: "hsla(200, 50%, 70%, 1.0)",
+      stroke: "hsla(0, 0%, 60%, 1.0)",
+      x: x,
+      y: y,
+    }).addChildTo(this.file);
+  },
+
+  // 仮想コミットの追加
+  addPreCommit: function(x, y) {
+    var circle = Circle({
+      fill: "#FFF",
+      stroke: "hsla(0, 0%, 60%, 1.0)",
+      x: x,
+      y: y,
+    }).addChildTo(this.commit);
+  },
+
+  // 線の追加
+  addLine: function(x, y, cx, cy) {
+    var line = PathShape({
+      stroke: "hsla(0, 0%, 60%, 1.0)",
+      strokeWidth: 2,
+      paths: [
+        Vector2(x, y),
+        Vector2(cx, cy),
+      ],
+    }).addChildTo(this.line);
+  },
+
   // コミットの追加
   addCommit: function(x, y) {
-    var color = "hsla({0}, 60%, 50%, 1.0)".format(Math.randint(0, 360));
-    var commit = Commit({
-      fill: color,
+    var circle = Circle({
+      fill: "hsla(203, 92%, 75%, 1.0)",
+      stroke: "hsla(0, 0%, 60%, 1.0)",
       x: x,
       y: y,
     }).addChildTo(this.commit);
@@ -134,9 +202,8 @@ phina.define('MainScene', {
 
   // ツリーの追加
   addTree: function(x, y) {
-    var color = "hsla(0, 0%, 50%, 1.0)";
     var line = PathShape({
-      stroke: color,
+      stroke: "hsla(0, 0%, 60%, 1.0)",
       paths: [
         Vector2(x, y - COMMIT_SPAN),
         Vector2(x, y)
@@ -167,14 +234,29 @@ phina.define('Text', {
   },
 });
 
+// ファイルのデザイン
+phina.define('Rect', {
+  superClass: 'RectangleShape',
+  init: function(options) {
+    options = (options || {}).$safe({
+      width: FILE_WIDTH,
+      height: FILE_HEIGHT,
+      fill: 'red',
+      stroke: null,
+    });
+
+    this.superInit(options);
+  },
+});
+
 // コミットのデザイン
-phina.define('Commit', {
+phina.define('Circle', {
   superClass: 'CircleShape',
   init: function(options) {
     options = (options || {}).$safe({
+      radius: COMMIT_RADIUS,
       fill: 'red',
       stroke: null,
-      radius: COMMIT_RADIUS,
     });
 
     this.superInit(options);
