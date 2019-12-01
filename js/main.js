@@ -128,12 +128,30 @@ phina.define('MainScene', {
             if (this.fileCount == 0) {
               var x = this.commitPosX;
               var y = this.commitPosY;
-              this.addPreCommit(x, y);
+              if (this.commitCount == 0) {
+                this.addPreCommit(x, y);
+              } else {
+                this.addPreCommit(x, y - COMMIT_SPAN);
+                this.commit.children.last.tweener.by({
+                  x: 0,
+                  y: 96,
+                }, 300,"swing");
+              }
             }
             var x = this.filePosX;
             var y = this.filePosY;
             this.addLine(x + FILE_WIDTH / 2, y, this.commitPosX - COMMIT_RADIUS, this.commitPosY);
             this.addFile(x, y);
+            this.line.children.last.alpha = 0;
+            this.file.children.last.alpha = 0;
+            this.line.children.last.tweener.by({
+              alpha: 1,
+            }, 200,"easeInQuint");
+            this.file.children.last.tweener.by({
+              alpha: 1,
+            }, 200,"easeInQuint");
+            //this.line.children.last.tweener.fadeIn(300).play();
+            //this.file.children.last.tweener.fadeIn(300).play();
             this.filePosY += FILE_SPAN;
             this.fileCount++;
             if (this.fileCount == 15 - this.commitCount * 2) {
@@ -173,8 +191,9 @@ phina.define('MainScene', {
   // 仮想コミットの追加
   addPreCommit: function(x, y) {
     var circle = Circle({
-      fill: "#FFF",
+      fill: "hsla(0, 0%, 100%, 0.0)",
       stroke: "hsla(0, 0%, 60%, 1.0)",
+      strokeWidth: 2,
       x: x,
       y: y,
     }).addChildTo(this.commit);
